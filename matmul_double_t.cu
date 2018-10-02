@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include <stdio.h>
+#include <cuda.h>
 #include <stdlib.h>
 
 #define TILE_WIDTH 16
