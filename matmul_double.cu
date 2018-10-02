@@ -92,18 +92,19 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
             SA[ty][tx] = 0;
         }
 
-        if ( col < )
-        {
-            /* code */
+        if ( (col < N ) && ( i * TILE_WIDTH + ty < K) ){
+            SB[ty][tx] = B[(i*TILE_WIDTH + ty)*N + col] ;
         }
+        else{
+            SB[ty][tx] = 0;
+        }
+
 
 
         __syncthreads() ;
 
-        for (int k = 0; k < TILE_WIDTH; ++k)
-        {
-            /* code */
-            Csub += A[ty][k]*B[k][tx] ;
+        for (int k = 0; k < TILE_WIDTH; ++k){   
+            Csub += SA[ty][k]*SB[k][tx] ;
         }
 
         __syncthreads() ;
@@ -111,7 +112,11 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
 
     }
 
-    C[row*n + col] = Csub ;
+    //C[row*n + col] = Csub ;
+
+    if ( (row < M ) && ( col < N )){
+        C[ row * N + col] = Csub ;
+    }
 
 
 
@@ -178,16 +183,19 @@ int main(int argc, char *argv[])
     
     /* call gpu kernel */
     /// complete code
-    dim3 dimGrid() ;
+
+    //Initialize the grid and block dimensions here
+    dim3 dimGrid( (N - 1) / TILE_WIDTH + 1 , (M - 1)/ TILE_WIDTH + 1 , 1) ;
     dim3 dimBlock(TILE_WIDTH , TILE_WIDTH , 1) ;
 
 
-
+    matmul_double<<dimGrid, dimBlock>>(dA, dB , dC ,M , N , K) ;
 
 
     /* Copy from device to host (dC -> dtohC) */
     /// complete code
 
+    cudaMemcpy(hC, dC , sizeof(double)*M*N , cudaMemcpyDeviceToHost) ;
 
     /* host vs device validation */
     validate(hC, dtohC, M, N);
