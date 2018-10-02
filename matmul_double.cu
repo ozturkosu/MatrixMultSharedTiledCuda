@@ -1,6 +1,14 @@
 /* objective
  * 	C = A*B  // A[m][k], B[k][n], C[m][n]
  * compile: nvcc --gpu-architecture=compute_60 --gpu-code=sm_60 -O3 matmul_double.cu -o matmul_double
+  Using nvprof for this lab
+
+            nvprof -- query-metrics
+            nvprof dram_read_transactions ./test 1024 1024  128
+            nvprof ./test 1024 1024 128 
+
+                second line of result shows time for GPU kernel
+
  */
 
 #include <iostream>
