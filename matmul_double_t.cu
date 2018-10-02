@@ -92,6 +92,26 @@ __device__ void transposeNoBankConflicts(double *odata, double *idata, int width
 }
 
 
+__device__ void transpose(double *inp , double *out, int width, int height)
+{
+    __shared__ double tile[TILE_WIDTH][TILE_WIDTH+1];
+
+
+    int x = blockIdx.x * TILE_WIDTH + threadIdx.x ;
+    int y = blockIdx.y * TILE_WIDTH + threadIdx.y ;
+
+    tile[threadIdx.y][threadIdx.x] = inp[y*width + x] ;
+
+    __syncthreads() ;
+
+    x = blockIdx.y * TILE_WIDTH + threadIdx.x ;
+    y = blockIdx.x * TILE_WIDTH + threadIdx.y ;
+
+    out[y*height + x] = tile[threadIdx.x][threadIdx.y] ;
+
+
+}
+
 __global__ void matmul_double(double* A, double* B , double* B_t, double* C, int M, int N, int K)
 {
     /// complete code
@@ -100,7 +120,8 @@ __global__ void matmul_double(double* A, double* B , double* B_t, double* C, int
 
     //__syncthreads() ;
 
-    transposeNoBankConflicts(B_t , B , K , N) ;
+    //transposeNoBankConflicts(B_t , B , K , N) ;
+    transpose(B, B_t ,K,N ) ;
 
     //__syncthreads() ;
 
@@ -170,25 +191,6 @@ __global__ void matmul_double(double* A, double* B , double* B_t, double* C, int
 
 
 
-__device__ void transpose(double *inp , double *out, int width, int height)
-{
-    __shared__ double tile[TILE_WIDTH][TILE_WIDTH+1];
-
-
-    int x = blockIdx.x * TILE_WIDTH + threadIdx.x ;
-    int y = blockIdx.y * TILE_WIDTH + threadIdx.y ;
-
-    tile[threadIdx.y][threadIdx.x] = inp[y*width + x] ;
-
-    __syncthreads() ;
-
-    x = blockIdx.y * TILE_WIDTH + threadIdx.x ;
-    y = blockIdx.x * TILE_WIDTH + threadIdx.y ;
-
-    out[y*height + x] = tile[threadIdx.x][threadIdx.y] ;
-
-
-}
 
 void validate (double *host, double *gpu, int M, int N)
 {
@@ -243,7 +245,7 @@ int main(int argc, char *argv[])
     init(hA, hB, M, N, K);
 
     /* host compute */
-    matmul_double_host(hA, hB, hC, M, N, K);
+    matmul_transpose_double_host(hA, hB, hC, M, N, K);
 
 
     /* Copy from host to device */
