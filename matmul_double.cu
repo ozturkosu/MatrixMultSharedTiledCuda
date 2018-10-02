@@ -104,7 +104,7 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
         __syncthreads() ;
 
         for (int k = 0; k < TILE_WIDTH; ++k){   
-            Csub += SA[ty][k]*SB[k][tx] ;
+            Csub += SA[ty][k] * SB[k][tx] ;
         }
 
         __syncthreads() ;
@@ -185,7 +185,9 @@ int main(int argc, char *argv[])
     /// complete code
 
     //Initialize the grid and block dimensions here
+    //dim3 dimGrid( ceil())
     dim3 dimGrid( (N - 1) / TILE_WIDTH + 1 , (M - 1)/ TILE_WIDTH + 1 , 1) ;
+    //dim3 dimGrid( (M - 1) / TILE_WIDTH + 1 , (N - 1)/ TILE_WIDTH + 1 , 1) ;
     dim3 dimBlock(TILE_WIDTH , TILE_WIDTH , 1) ;
 
 
