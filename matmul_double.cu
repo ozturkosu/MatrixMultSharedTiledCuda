@@ -69,7 +69,7 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
     int by = blockIdx.y ;
 
     int tx = threadIdx.x ;
-    int ty = threadidx.y ;
+    int ty = threadIdx.y ;
 
     int row = by * TILE_WIDTH + ty ;
     int col = bx * TILE_WIDTH + tx ;
@@ -86,7 +86,7 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
         //SB[ty][tx] = B[(i * TILE_WIDTH + ty )*n + col   ] ;
 
         if ( (row < M) && (i * TILE_WIDTH + tx < K ) ){
-            SA[ty][tx] = A[row*K + i * TILE_WIDTH + tx]
+            SA[ty][tx] = A[row*K + i * TILE_WIDTH + tx] ;
         }
         else{
             SA[ty][tx] = 0;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     dim3 dimBlock(TILE_WIDTH , TILE_WIDTH , 1) ;
 
 
-    matmul_double<<dimGrid, dimBlock>>(dA, dB , dC ,M , N , K) ;
+    matmul_double<<<dimGrid, dimBlock>>>(dA, dB , dC , M , N , K) ;
 
 
     /* Copy from device to host (dC -> dtohC) */
