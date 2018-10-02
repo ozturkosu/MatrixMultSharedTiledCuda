@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     /* Copy from device to host (dC -> dtohC) */
     /// complete code
 
-    cudaMemcpy(hC, dC , sizeof(double)*M*N , cudaMemcpyDeviceToHost) ;
+    cudaMemcpy(dtohC, dC , sizeof(double)*M*N , cudaMemcpyDeviceToHost) ;
 
     /* host vs device validation */
     validate(hC, dtohC, M, N);
