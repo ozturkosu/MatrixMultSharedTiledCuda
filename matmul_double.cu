@@ -79,11 +79,24 @@ __global__ void matmul_double(double* A, double* B , double* C, int M, int N, in
 
     double Csub = 0;
 
-    for (int i = 0; i < n/TILE_WIDTH; ++i)
+    for (int i = 0; i < (K-1)/TILE_WIDTH +1 ; ++i)
     {
         /* code */
-        SA[ty][tx] = A[row*n + i * TILE_WIDTH + tx] ;
-        SB[ty][tx] = B[(i * TILE_WIDTH + ty )*n + col   ] ;
+        //SA[ty][tx] = A[row*n + i * TILE_WIDTH + tx] ;
+        //SB[ty][tx] = B[(i * TILE_WIDTH + ty )*n + col   ] ;
+
+        if ( (row < M) && (i * TILE_WIDTH + tx < K ) ){
+            SA[ty][tx] = A[row*K + i * TILE_WIDTH + tx]
+        }
+        else{
+            SA[ty][tx] = 0;
+        }
+
+        if ( col < )
+        {
+            /* code */
+        }
+
 
         __syncthreads() ;
 
@@ -159,16 +172,18 @@ int main(int argc, char *argv[])
 
     /* Copy from host to device */
     /// complete code
+    cudaMemcpy(dA,hA ,M*K * sizeof(double) , cudaMemcpyHostToDevice ) ;
+    cudaMemcpy(dB,hB ,K*N * sizeof(double) , cudaMemcpyHostToDevice ) ;
 
     
-
-
-
-    
-
-
     /* call gpu kernel */
     /// complete code
+    dim3 dimGrid() ;
+    dim3 dimBlock(TILE_WIDTH , TILE_WIDTH , 1) ;
+
+
+
+
 
     /* Copy from device to host (dC -> dtohC) */
     /// complete code
@@ -185,6 +200,10 @@ int main(int argc, char *argv[])
     free(dtohC);
 
     /// add code to free gpu memory
+
+    cudaFree(dA) ;
+    cudaFree(dB) ;
+    cudaFree(dC) ;
 
 
     return 0;
