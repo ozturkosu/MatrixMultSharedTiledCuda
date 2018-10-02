@@ -136,7 +136,7 @@ __global__ void matmul_double(double* A, double* B , double* B_t, double* C, int
         }
 
         if ( (col < colB ) && ( i * TILE_WIDTH + ty < rowB) ){
-            SB[ty][tx] = B[(i*TILE_WIDTH + ty)*rowB + col] ;
+            SB[ty][tx] = B_t[(i*TILE_WIDTH + ty)*rowB + col] ;
             //SB[ty][tx] = B_t[(i*TILE_WIDTH + ty)*K + col] ;
 
         }
@@ -175,13 +175,17 @@ __device__ void transpose(double *inp , double *out, int width, int height)
     __shared__ double tile[TILE_WIDTH][TILE_WIDTH+1];
 
 
+    int x = blockIdx.x * TILE_WIDTH + threadIdx.x ;
+    int y = blockIdx.y * TILE_WIDTH + threadIdx.y ;
 
+    tile[threadIdx.y][threadIdx.x] = inp[y*width + x] ;
 
+    __syncthreads() ;
 
+    x = blockIdx.y * TILE_WIDTH + threadIdx.x ;
+    y = blockIdx.x * TILE_WIDTH + threadIdx.y ;
 
-
-
-
+    out[y*height + x] = tile[threadIdx.x][threadIdx.y] ;
 
 
 }
