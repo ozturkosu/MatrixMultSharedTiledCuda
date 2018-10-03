@@ -10,7 +10,7 @@
 #include <cuda.h>
 #include <stdlib.h>
 
-#define TILE_WIDTH 2
+#define TILE_WIDTH 16
 
 #define EC(ans) { chkerr((ans), __FILE__, __LINE__); }
 inline void chkerr(cudaError_t code, const char *file, int line)
@@ -29,6 +29,7 @@ void init (double *A, double *B, int M , int N, int K)
         for (int j = 0; j < K; ++j)
         {
             A[i * K + j] = i * K + j;
+            //A[i * K + j] = 1 ;
         }
     }
 
@@ -36,8 +37,9 @@ void init (double *A, double *B, int M , int N, int K)
     {
         for (int j = 0; j < K; ++j)
         {
-            //B[i * N + j] = i * N + j + 1;
+            
             B[i * K + j] = i * K + j + 1;
+            //B[i * K + j] = 2;
         }
     }
 
@@ -55,7 +57,7 @@ void matmul_transpose_double_host(double* A, double* B, double* C, int M, int N,
             for (int k = 0; k < K; ++k)
             {
                 //tmp += A[i * K + k] * B[k * N + j];
-                tmp +=A[i* K +k ] * B[j*N + k];
+                tmp +=  A[ i* K +k ] * B[j*K + k];
             }
 
             C[i * N + j] = tmp;
@@ -115,16 +117,7 @@ __device__ void transpose(double *inp , double *out, int width, int height)
 
 __global__ void matmul_double(double* A, double* B ,  double* C, int M, int N, int K)
 {
-    /// complete code
-    // B matrix is N*K so we should find transpose of B
 
-
-    //__syncthreads() ;
-
-    //transposeNoBankConflicts(B_t , B , K , N) ;
-    //transpose(B, B_t ,K,N ) ;
-
-    //__syncthreads() ;
 
 
     int bx = blockIdx.x ;
@@ -169,10 +162,7 @@ __global__ void matmul_double(double* A, double* B ,  double* C, int M, int N, i
         __syncthreads() ;
 
         for (int k = 0; k < TILE_WIDTH; ++k){   
-            //Csub += SA[ty][k]*SB[k][tx] ;
-            //Csub += SA[ty][k]*SB[k][tx] ;
             Csub += SA[ty][k]*SB[tx][k] ;
-
         }
 
         __syncthreads() ;
