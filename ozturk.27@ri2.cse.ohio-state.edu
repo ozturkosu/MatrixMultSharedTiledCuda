@@ -136,17 +136,19 @@ __global__ void matmul_double(double* A, double* B ,  double* C, int M, int N, i
     int row = by * TILE_WIDTH + ty ;
     int col = bx * TILE_WIDTH + tx ;
 
-    __shared__ double SA[TILE_WIDTH][TILE_WIDTH+1] ;
-    __shared__ double SB[TILE_WIDTH][TILE_WIDTH+1] ;
+    __shared__ double SA[TILE_WIDTH][TILE_WIDTH] ;
+    __shared__ double SB[TILE_WIDTH][TILE_WIDTH] ;
 
     double Csub = 0;
 
-    
+    //int rowB = N;
+    //int colB = K;
 
     for (int i = 0; i < (K-1)/TILE_WIDTH +1 ; ++i)
     {
         /* code */
-        
+        //SA[ty][tx] = A[row*n + i * TILE_WIDTH + tx] ;
+        //SB[ty][tx] = B[(i * TILE_WIDTH + ty )*n + col   ] ;
 
         if ( (row < M) && (i * TILE_WIDTH + tx < K ) ){
             SA[ty][tx] = A[row*K + i * TILE_WIDTH + tx] ;
@@ -155,24 +157,36 @@ __global__ void matmul_double(double* A, double* B ,  double* C, int M, int N, i
             SA[ty][tx] = 0;
         }
 
-       
+        //if ( (col < colB ) && ( i * TILE_WIDTH + ty < rowB) ){
+            //SB[ty][tx] = B[(i*TILE_WIDTH + ty)*rowB + col] ;
+            //SB[ty][tx] = B_t[(i*TILE_WIDTH + ty)*K + col] ;
 
-        
-        if ( (col < N ) &&  ( i * TILE_WIDTH + ty < K)){
-            SB[tx][ty] = B[ col * K + i*TILE_WIDTH + ty] ;
+        /*
+        if ( (col < N ) &&  ( i * TILE_WIDTH + tx < K)){
+            //SB[ty][tx] = B[row*K + i * TILE_WIDTH + tx] ;
+
+            SB[ty][tx] = B[ col * K + i*TILE_WIDTH + tx] ;
         } 
+        else{
+            SB[ty][tx] = 0;
+
+        }
+        */
+        if ( (col < N ) && ( i * TILE_WIDTH + ty < K) ){
+            SB[tx][ty] = B[(i*TILE_WIDTH + ty)*N + col] ;
+        }
         else{
             SB[tx][ty] = 0;
         }
-        
+
+
+
 
         __syncthreads() ;
 
         for (int k = 0; k < TILE_WIDTH; ++k){   
             //Csub += SA[ty][k]*SB[k][tx] ;
-            //Csub += SA[ty][k]*SB[k][tx] ;
-            Csub += SA[ty][k]*SB[tx][k] ;
-
+            Csub += SA[ty][k]*SB[k][tx] ;
         }
 
         __syncthreads() ;

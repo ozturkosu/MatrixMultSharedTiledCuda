@@ -9,6 +9,8 @@
 
                 second line of result shows time for GPU kernel
 
+                GFlop   ( 2MNK * 10^-9 ) / time (second)
+
  */
 
 #include <iostream>
