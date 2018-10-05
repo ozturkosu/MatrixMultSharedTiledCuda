@@ -66,54 +66,7 @@ void matmul_transpose_double_host(double* A, double* B, double* C, int M, int N,
 }
 
 
-__device__ void transposeNoBankConflicts(double *odata, double *idata, int width, int height)
-{
-  __shared__ double tile[TILE_WIDTH][TILE_WIDTH+1];
 
-  int nreps=1;
-  int BLOCK_ROWS = TILE_WIDTH;
-
-  int xIndex = blockIdx.x * TILE_WIDTH + threadIdx.x;
-  int yIndex = blockIdx.y * TILE_WIDTH + threadIdx.y;  
-  int index_in = xIndex + (yIndex)*width;
-
-  xIndex = blockIdx.y * TILE_WIDTH + threadIdx.x;
-  yIndex = blockIdx.x * TILE_WIDTH + threadIdx.y;
-  int index_out = xIndex + (yIndex)*height;
-
-  for (int r=0; r < nreps; r++) {
-    for (int i=0; i<TILE_WIDTH; i+=BLOCK_ROWS) {
-      tile[threadIdx.y+i][threadIdx.x] = idata[index_in+i*width];
-    }
-  
-    __syncthreads();
-  
-    for (int i=0; i<TILE_WIDTH; i+=BLOCK_ROWS) {
-      odata[index_out+i*height] = tile[threadIdx.x][threadIdx.y+i];
-    }
-  }
-}
-
-
-__device__ void transpose(double *inp , double *out, int width, int height)
-{
-    __shared__ double tile[TILE_WIDTH][TILE_WIDTH+1];
-
-
-    int x = blockIdx.x * TILE_WIDTH + threadIdx.x ;
-    int y = blockIdx.y * TILE_WIDTH + threadIdx.y ;
-
-    tile[threadIdx.y][threadIdx.x] = inp[y*width + x] ;
-
-    __syncthreads() ;
-
-    x = blockIdx.y * TILE_WIDTH + threadIdx.x ;
-    y = blockIdx.x * TILE_WIDTH + threadIdx.y ;
-
-    out[y*height + x] = tile[threadIdx.x][threadIdx.y] ;
-
-
-}
 
 __global__ void matmul_double(double* A, double* B ,  double* C, int M, int N, int K)
 {
